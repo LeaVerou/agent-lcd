@@ -16,5 +16,8 @@
 	"license": "MIT",
 	"dependencies": {
 		"gray-matter": "^4.0.3"
+	},
+	"devDependencies": {
+		"release-it": "^21.1.1"
 	}
 }
