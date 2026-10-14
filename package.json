@@ -1,0 +1,17 @@
+{
+	"name": "agent-lcd",
+	"version": "0.1.0",
+	"description": "Run a prompt through the weakest configuration of Codex, Gemini CLI and Claude Code, and compare the results in one Markdown file",
+	"type": "module",
+	"bin": {
+		"agent-lcd": "./bin/agent-lcd.js"
+	},
+	"files": [
+		"bin",
+		"src"
+	],
+	"engines": {
+		"node": ">=24"
+	},
+	"license": "MIT"
+}
