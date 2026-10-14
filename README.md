@@ -23,6 +23,7 @@ Each CLI must be signed in once, interactively:
 ```sh
 agent-lcd "Explain CSS nesting in one paragraph"
 agent-lcd -f prompt.md
+agent-lcd                                   # uses ./prompt.md if present
 cat prompt.md | agent-lcd -o report.md
 agent-lcd -a codex,claude -f prompt.md     # subset of agents
 agent-lcd -o - "…"                          # report to stdout

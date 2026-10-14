@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { parseArgs, styleText } from "node:util";
 import agents from "../src/agents/index.js";
@@ -12,7 +12,8 @@ const HELP = `Usage: agent-lcd [options] [prompt]
 Run a prompt through Codex, Antigravity CLI and Claude Code with their weakest
 models and no tools, memory, plugins or web search. Writes a Markdown report.
 
-The prompt comes from the first of: --file, the positional argument, stdin.
+The prompt comes from the first of: --file, the positional argument, stdin,
+a prompt.md in the current directory.
 
 Options:
   -f, --file <path>      Read the prompt from a file
@@ -103,7 +104,20 @@ async function readPrompt () {
 			return text;
 		}
 	}
+	if (await exists("prompt.md")) {
+		return readFile("prompt.md", "utf8");
+	}
 	throw new Error("No prompt given.\n\n" + HELP);
+}
+
+async function exists (path) {
+	try {
+		await access(path);
+		return true;
+	}
+	catch {
+		return false;
+	}
 }
 
 /** Filesystem-safe local timestamp, e.g. 2026-10-13-1842 */
