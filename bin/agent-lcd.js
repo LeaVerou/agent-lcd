@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { parseArgs, styleText } from "node:util";
 import agents from "../src/agents/index.js";
 import loadConfig from "../src/config.js";
+import readPrompt from "../src/prompt.js";
 import run from "../src/run.js";
 import report from "../src/report.js";
 
@@ -13,7 +14,8 @@ Run a prompt through Codex, Antigravity CLI and Claude Code with their weakest
 models and no tools, memory, plugins or web search. Writes a Markdown report.
 
 The prompt comes from the first of: --file, the positional argument, stdin,
-a prompt.md in the current directory.
+a prompt.md in the current directory. File and stdin prompts may start with
+YAML frontmatter holding config overrides (same keys as the config file).
 
 Options:
   -f, --file <path>      Read the prompt from a file
@@ -23,7 +25,7 @@ Options:
   -h, --help             Show this help
 `;
 
-let values, positionals, config, prompt;
+let values, positionals, config, prompt, overrides;
 try {
 	({ values, positionals } = parseArgs({
 		allowPositionals: true,
@@ -39,11 +41,11 @@ try {
 		console.log(HELP);
 		process.exit(0);
 	}
-	config = await loadConfig(values.config);
-	prompt = await readPrompt();
+	({ text: prompt, config: overrides } = await readPrompt(values, positionals));
+	config = await loadConfig(values.config, overrides);
 }
 catch (e) {
-	fail(e.message);
+	fail(e.message + (e.message.startsWith("No prompt") ? "\n\n" + HELP : ""));
 }
 
 const wrapped = config.wrap(prompt);
@@ -87,38 +89,6 @@ else {
 }
 // Not process.exit(): let stdout drain first
 process.exitCode = results.some(r => r.error) ? 1 : 0;
-
-async function readPrompt () {
-	if (values.file) {
-		return readFile(values.file, "utf8");
-	}
-	if (positionals.length) {
-		return positionals.join(" ");
-	}
-	if (!process.stdin.isTTY) {
-		let text = "";
-		for await (const chunk of process.stdin) {
-			text += chunk;
-		}
-		if (text.trim()) {
-			return text;
-		}
-	}
-	if (await exists("prompt.md")) {
-		return readFile("prompt.md", "utf8");
-	}
-	throw new Error("No prompt given.\n\n" + HELP);
-}
-
-async function exists (path) {
-	try {
-		await access(path);
-		return true;
-	}
-	catch {
-		return false;
-	}
-}
 
 /** Filesystem-safe local timestamp, e.g. 2026-10-13-1842 */
 function timestamp (d) {

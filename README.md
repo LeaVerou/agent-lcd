@@ -38,9 +38,24 @@ agent-lcd -o - "…"                          # report to stdout
 
 Exit code is 1 if any agent failed, 2 on usage errors. Progress goes to stderr.
 
+### Frontmatter
+
+A prompt file (via `-f`, stdin or `./prompt.md`) may start with YAML frontmatter. It takes the same keys as the config file and overrides it for that prompt; CLI flags still win.
+
+```md
+---
+wrap: "Answer in under 100 words.\n\n{prompt}"
+output: reports/cards.md
+agents:
+  codex: { model: gpt-5.6-luna }
+  antigravity: false
+---
+Write modern HTML and CSS for a set of profile cards…
+```
+
 ## Config
 
-`agent-lcd.config.js` (also `.mjs` or `.json`) in the working directory, or `-c path`. Every key is optional.
+`agent-lcd.config.js` (also `.mjs` or `.json`) in the working directory, or `-c path`. Every key is optional. Precedence, lowest first: defaults, config file, prompt frontmatter, CLI flags.
 
 ```js
 export default {

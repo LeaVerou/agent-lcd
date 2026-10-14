@@ -26,11 +26,13 @@ export const defaults = {
 const CANDIDATES = ["agent-lcd.config.js", "agent-lcd.config.mjs", "agent-lcd.config.json"];
 
 /**
- * Load the config file (explicit path, or the first candidate found in the current directory) over the defaults.
+ * Build the config from, in increasing precedence: defaults, the config file
+ * (explicit path, or the first candidate found in the current directory), then any extra layers.
  * @param {string} [path]
+ * @param {...Partial<Config>} layers e.g. a prompt file's frontmatter
  * @returns {Promise<Config>}
  */
-export default async function loadConfig (path) {
+export default async function loadConfig (path, ...layers) {
 	path ??= await find(CANDIDATES);
 	let user = {};
 	if (path) {
@@ -38,13 +40,21 @@ export default async function loadConfig (path) {
 		const module = await import(url, path.endsWith(".json") ? { with: { type: "json" } } : undefined);
 		user = module.default ?? {};
 	}
-	const config = { ...defaults, ...user };
+	const config = merge(defaults, user, ...layers);
 	if (typeof config.wrap !== "function") {
 		const template = config.wrap;
 		// Function replacer, so `$&` and friends in the prompt stay literal
 		config.wrap = prompt => template.replaceAll("{prompt}", () => prompt);
 	}
 	return config;
+}
+
+/** Shallow merge, except `agents` is merged one level deeper so layers can override a single agent */
+function merge (...layers) {
+	return {
+		...Object.assign({}, ...layers),
+		agents: Object.assign({}, ...layers.map(layer => layer.agents)),
+	};
 }
 
 async function find (paths) {
