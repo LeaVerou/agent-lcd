@@ -11,13 +11,13 @@ import matter from "gray-matter";
  * Resolve the prompt from the first available source: a file, the positional arguments,
  * stdin, or `./prompt.md`. File and stdin prompts may start with YAML frontmatter holding
  * config overrides.
- * @param {{ file?: string }} values Parsed CLI options
+ * @param {{ input?: string }} values Parsed CLI options
  * @param {string[]} positionals
  * @returns {Promise<Prompt>}
  */
-export default async function readPrompt ({ file }, positionals) {
-	if (file) {
-		return frontmatter(await readFile(file, "utf8"));
+export default async function readPrompt ({ input }, positionals) {
+	if (input) {
+		return frontmatter(await readFile(input, "utf8"));
 	}
 	if (positionals.length) {
 		return { text: positionals.join(" "), config: {} };

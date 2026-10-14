@@ -22,17 +22,18 @@ Each CLI must be signed in once, interactively:
 
 ```sh
 agent-lcd "Explain CSS nesting in one paragraph"
-agent-lcd -f prompt.md
+agent-lcd -i prompt.md
 agent-lcd                                   # uses ./prompt.md if present
 cat prompt.md | agent-lcd -o report.md
-agent-lcd -a codex,claude -f prompt.md     # subset of agents
+agent-lcd -a codex,claude -i prompt.md     # subset of agents
 agent-lcd -o - "…"                          # report to stdout
 ```
 
 | Flag | |
 |---|---|
-| `-f, --file <path>` | Read the prompt from a file |
-| `-o, --output <path>` | Report path, `-` for stdout. `{timestamp}` → local date and time |
+| `-i, --input <path>` | Read the prompt from a file |
+| `-o, --output <path>` | Report path, `-` for stdout. `{timestamp}` → local date and time. An existing file is never overwritten: the new report gets a `-2`, `-3`… suffix |
+| `-f, --force` | Overwrite an existing report instead |
 | `-c, --config <path>` | Config file. Default: `./agent-lcd.config.js` if present |
 | `-a, --agents <list>` | Comma-separated subset of `claude`, `codex`, `antigravity`. Overrides agents set to `false` in config |
 
@@ -40,7 +41,7 @@ Exit code is 1 if any agent failed, 2 on usage errors. Progress goes to stderr.
 
 ### Frontmatter
 
-A prompt file (via `-f`, stdin or `./prompt.md`) may start with YAML frontmatter. It takes the same keys as the config file and overrides it for that prompt; CLI flags still win.
+A prompt file (via `-i`, stdin or `./prompt.md`) may start with YAML frontmatter. It takes the same keys as the config file and overrides it for that prompt; CLI flags still win.
 
 ```md
 ---

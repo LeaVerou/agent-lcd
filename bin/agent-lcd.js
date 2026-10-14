@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, writeFile } from "node:fs/promises";
+import { extname } from "node:path";
 import { dirname } from "node:path";
 import { parseArgs, styleText } from "node:util";
 import agents from "../src/agents/index.js";
@@ -13,13 +14,14 @@ const HELP = `Usage: agent-lcd [options] [prompt]
 Run a prompt through Codex, Antigravity CLI and Claude Code with their weakest
 models and no tools, memory, plugins or web search. Writes a Markdown report.
 
-The prompt comes from the first of: --file, the positional argument, stdin,
+The prompt comes from the first of: --input, the positional argument, stdin,
 a prompt.md in the current directory. File and stdin prompts may start with
 YAML frontmatter holding config overrides (same keys as the config file).
 
 Options:
-  -f, --file <path>      Read the prompt from a file
+  -i, --input <path>     Read the prompt from a file
   -o, --output <path>    Report path ("-" for stdout). Supports {timestamp}
+  -f, --force            Overwrite an existing report instead of numbering the new one
   -c, --config <path>    Config file (default: ./agent-lcd.config.js if present)
   -a, --agents <list>    Comma-separated subset of: ${Object.keys(agents).join(", ")}
   -h, --help             Show this help
@@ -30,7 +32,8 @@ try {
 	({ values, positionals } = parseArgs({
 		allowPositionals: true,
 		options: {
-			file: { type: "string", short: "f" },
+			input: { type: "string", short: "i" },
+			force: { type: "boolean", short: "f" },
 			output: { type: "string", short: "o" },
 			config: { type: "string", short: "c" },
 			agents: { type: "string", short: "a" },
@@ -78,17 +81,35 @@ const results = await Promise.all(runs.map(async ({ agent, options }) => {
 }));
 
 const markdown = report({ prompt, wrapped, results, date });
-const output = (values.output ?? config.output).replaceAll("{timestamp}", timestamp(date));
+let output = (values.output ?? config.output).replaceAll("{timestamp}", timestamp(date));
 if (output === "-") {
 	console.log(markdown);
 }
 else {
 	await mkdir(dirname(output), { recursive: true });
+	if (!values.force) {
+		output = await unused(output);
+	}
 	await writeFile(output, markdown);
 	log(styleText("dim", "→"), output);
 }
 // Not process.exit(): let stdout drain first
 process.exitCode = results.some(r => r.error) ? 1 : 0;
+
+/** First of `path`, `name-2.ext`, `name-3.ext`… that does not exist yet */
+async function unused (path) {
+	const ext = extname(path);
+	const base = path.slice(0, -ext.length || undefined);
+	for (let n = 1; ; n++) {
+		const candidate = n === 1 ? path : `${base}-${n}${ext}`;
+		try {
+			await access(candidate);
+		}
+		catch {
+			return candidate;
+		}
+	}
+}
 
 /** Filesystem-safe local timestamp, e.g. 2026-10-13-1842 */
 function timestamp (d) {
