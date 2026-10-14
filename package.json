@@ -1,6 +1,6 @@
 {
 	"name": "agent-lcd",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Run a prompt through the weakest configuration of Codex, Gemini CLI and Claude Code, and compare the results in one Markdown file",
 	"type": "module",
 	"bin": {
