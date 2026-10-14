@@ -69,7 +69,7 @@ const runs = selected.flatMap(key => {
 const log = (icon, text) => console.error(`${icon} ${text}`);
 const date = new Date();
 const results = await Promise.all(runs.map(async ({ agent, options }) => {
-	log(styleText("dim", "▶"), `${agent.name} (${options.model})`);
+	log(styleText("dim", "⋯"), `${agent.name} (${options.model})`);
 	const result = await run(agent, options, wrapped, config.timeout);
 	if (result.error) {
 		log(styleText("red", "✗"), `${agent.name}: ${result.error.split("\n")[0]}`);
