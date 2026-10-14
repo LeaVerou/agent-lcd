@@ -7,9 +7,10 @@
  * @param {string} data.wrapped The prompt as actually sent
  * @param {RunResult[]} data.results
  * @param {Date} data.date
+ * @param {boolean} [data.debug] Include each agent's reproduction command
  * @returns {string}
  */
-export default function report ({ prompt, wrapped, results, date }) {
+export default function report ({ prompt, wrapped, results, date, debug }) {
 	const rows = results.map(r => [
 		r.agent.name,
 		code(r.model ?? r.options.model),
@@ -24,7 +25,7 @@ export default function report ({ prompt, wrapped, results, date }) {
 		r.error && error(r.error),
 		r.text && demote(r.text, 2),
 		!r.error && !r.text && "_No output._",
-		details("Command", fence(r.command, "sh")),
+		debug && details("Command", fence(r.command, "sh")),
 	].filter(Boolean).join("\n\n"));
 
 	return [

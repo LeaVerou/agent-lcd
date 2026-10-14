@@ -24,6 +24,7 @@ Options:
   -f, --force            Overwrite an existing report instead of numbering the new one
   -c, --config <path>    Config file (default: ./agent-lcd.config.js if present)
   -a, --agents <list>    Comma-separated subset of: ${Object.keys(agents).join(", ")}
+  -d, --debug            Include each agent's exact command in the report
   -h, --help             Show this help
 `;
 
@@ -37,6 +38,7 @@ try {
 			output: { type: "string", short: "o" },
 			config: { type: "string", short: "c" },
 			agents: { type: "string", short: "a" },
+			debug: { type: "boolean", short: "d" },
 			help: { type: "boolean", short: "h" },
 		},
 	}));
@@ -80,7 +82,7 @@ const results = await Promise.all(runs.map(async ({ agent, options }) => {
 	return result;
 }));
 
-const markdown = report({ prompt, wrapped, results, date });
+const markdown = report({ prompt, wrapped, results, date, debug: values.debug });
 let output = (values.output ?? config.output).replaceAll("{timestamp}", timestamp(date));
 if (output === "-") {
 	console.log(markdown);
