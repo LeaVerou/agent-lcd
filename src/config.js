@@ -19,7 +19,7 @@ import { pathToFileURL } from "node:url";
 export const defaults = {
 	wrap: "{prompt}",
 	timeout: 600,
-	output: "agent-lcd-{timestamp}.md",
+	output: "reports/{timestamp}.md",
 	agents: {},
 };
 

@@ -11,7 +11,7 @@ export default {
 	timeout: 600,
 
 	// Report path. "-" prints to stdout. `{timestamp}` → local date and time.
-	output: "agent-lcd-{timestamp}.md",
+	output: "reports/{timestamp}.md",
 
 	// Per-agent overrides. Set an agent to `false` to skip it.
 	// `args` are extra CLI arguments appended to the agent's command line.
